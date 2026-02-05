@@ -1,5 +1,6 @@
 mod api;
 mod app;
+mod gitignore;
 mod models;
 mod ui;
 
@@ -186,13 +187,43 @@ async fn main() -> Result<()> {
                         KeyCode::PageUp => {
                             app.preview_scroll = app.preview_scroll.saturating_sub(10);
                         }
-                        KeyCode::Enter | KeyCode::Char('s')
-                            if key.modifiers.contains(KeyModifiers::CONTROL) =>
-                        {
-                            if app.selected_templates.is_empty() {
-                                app.error = Some("No templates selected!".to_string());
+                        KeyCode::Enter => {
+                            // Save and Quit
+                            if !app.selected_templates.is_empty() {
+                                app.notification = None;
+                                app.error = None;
+                                app.should_quit_after_save = true;
+                                if std::path::Path::new(".gitignore").exists() {
+                                    app.input_mode = InputMode::Confirm;
+                                    app.confirm_action = Some(crate::app::ConfirmAction::Append);
+                                } else {
+                                    let content = app.generate_gitignore_content();
+                                    if gitignore::write_gitignore(&content, gitignore::WriteMode::Overwrite).is_ok() {
+                                        break 'main_loop;
+                                    }
+                                }
                             } else {
-                                app.error = Some("Save not implemented yet.".to_string());
+                                app.error = Some("No templates selected!".to_string());
+                            }
+                        }
+                        KeyCode::Char('s') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                            // Save
+                            if !app.selected_templates.is_empty() {
+                                app.notification = None;
+                                app.error = None;
+                                app.should_quit_after_save = false;
+                                if std::path::Path::new(".gitignore").exists() {
+                                    app.input_mode = InputMode::Confirm;
+                                    app.confirm_action = Some(crate::app::ConfirmAction::Append);
+                                } else {
+                                    let content = app.generate_gitignore_content();
+                                    match gitignore::write_gitignore(&content, gitignore::WriteMode::Overwrite) {
+                                        Ok(_) => app.notification = Some("Successfully created .gitignore!".to_string()),
+                                        Err(e) => app.error = Some(format!("Failed to write: {}", e)),
+                                    }
+                                }
+                            } else {
+                                app.error = Some("No templates selected!".to_string());
                             }
                         }
                         _ => {}
@@ -205,8 +236,32 @@ async fn main() -> Result<()> {
                             app.confirm_action = Some(crate::app::ConfirmAction::Overwrite);
                         }
                         KeyCode::Enter => {
-                            app.error = Some("Save not implemented yet.".to_string());
-                            app.input_mode = InputMode::Normal;
+                            let mode = match app.confirm_action {
+                                Some(crate::app::ConfirmAction::Append) => gitignore::WriteMode::Append,
+                                _ => gitignore::WriteMode::Overwrite,
+                            };
+                            let content = app.generate_gitignore_content();
+                            let should_quit = app.should_quit_after_save;
+                            match gitignore::write_gitignore(&content, mode) {
+                                Ok(_) => {
+                                    if should_quit {
+                                        break 'main_loop;
+                                    }
+                                    app.notification = Some(format!(
+                                        "Successfully {}ed .gitignore!",
+                                        if let gitignore::WriteMode::Append = mode {
+                                            "append"
+                                        } else {
+                                            "overwrit"
+                                        }
+                                    ));
+                                    app.input_mode = InputMode::Normal;
+                                }
+                                Err(e) => {
+                                    app.error = Some(format!("Failed to write: {}", e));
+                                    app.input_mode = InputMode::Normal;
+                                }
+                            }
                         }
                         KeyCode::Esc => {
                             app.error = None;
