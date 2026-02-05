@@ -117,6 +117,8 @@ fn draw_preview_pane(f: &mut Frame, app: &mut App, area: Rect) {
 
     let title = format!(" Preview {} ", mode_str);
     let content = app.get_combined_preview();
+    let content_height = area.height.saturating_sub(2);
+    app.set_preview_height(content_height);
     let preview = Paragraph::new(content)
         .block(
             Block::default()

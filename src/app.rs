@@ -56,6 +56,8 @@ pub struct App {
     pub should_quit_after_save: bool,
     /// Directory where the .gitignore should be written.
     pub output_dir: PathBuf,
+    /// Cached preview pane height (content rows, excluding borders).
+    pub preview_height: u16,
 }
 
 impl App {
@@ -77,6 +79,7 @@ impl App {
             confirm_action: None,
             should_quit_after_save: false,
             output_dir,
+            preview_height: 0,
         }
     }
 
@@ -190,6 +193,28 @@ impl App {
 
     pub fn get_preview_line_count(&self) -> usize {
         self.get_combined_preview().lines().count()
+    }
+
+    pub fn max_preview_scroll(&self) -> u16 {
+        let line_count = self.get_preview_line_count();
+        let height = self.preview_height as usize;
+        if height == 0 {
+            return 0;
+        }
+        let max_scroll = line_count.saturating_sub(height);
+        max_scroll.min(u16::MAX as usize) as u16
+    }
+
+    pub fn set_preview_height(&mut self, height: u16) {
+        self.preview_height = height;
+        self.clamp_preview_scroll();
+    }
+
+    pub fn clamp_preview_scroll(&mut self) {
+        let max_scroll = self.max_preview_scroll();
+        if self.preview_scroll > max_scroll {
+            self.preview_scroll = max_scroll;
+        }
     }
 
     pub fn generate_gitignore_content(&self) -> String {

@@ -152,8 +152,8 @@ async fn main() -> Result<()> {
                         KeyCode::Down | KeyCode::Char('j')
                             if key.modifiers.contains(KeyModifiers::ALT) =>
                         {
-                            let line_count = app.get_preview_line_count();
-                            if (app.preview_scroll as usize) < line_count.saturating_sub(2) {
+                            let max_scroll = app.max_preview_scroll();
+                            if app.preview_scroll < max_scroll {
                                 app.preview_scroll = app.preview_scroll.saturating_add(1);
                             }
                         }
@@ -177,13 +177,9 @@ async fn main() -> Result<()> {
                             app.preview_scroll = 0;
                         }
                         KeyCode::PageDown => {
-                            let line_count = app.get_preview_line_count();
+                            let max_scroll = app.max_preview_scroll();
                             let target = app.preview_scroll.saturating_add(10);
-                            if (target as usize) < line_count {
-                                app.preview_scroll = target;
-                            } else {
-                                app.preview_scroll = line_count.saturating_sub(2) as u16;
-                            }
+                            app.preview_scroll = target.min(max_scroll);
                         }
                         KeyCode::PageUp => {
                             app.preview_scroll = app.preview_scroll.saturating_sub(10);
