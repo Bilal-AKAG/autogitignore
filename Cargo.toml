@@ -1,7 +1,15 @@
 [package]
 name = "autogitignore"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
+authors = ["Bilal Ali"]
+description = "A TUI for searching, previewing, and generating .gitignore files from gitignore.io templates."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/Bilal-AKAG/autogitignore"
+homepage = "https://github.com/Bilal-AKAG/autogitignore"
+keywords = ["gitignore", "tui", "terminal", "rust", "developer-tools"]
+categories = ["command-line-utilities", "development-tools"]
 
 [dependencies]
 anyhow = "1.0.100"
