@@ -14,7 +14,7 @@ use crossterm::{
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::{io, time::Duration};
+use std::{io, path::PathBuf, time::Duration};
 use tokio::sync::mpsc;
 
 enum AppEvent {
@@ -58,7 +58,8 @@ impl Drop for TerminalSession {
 #[tokio::main]
 async fn main() -> Result<()> {
     let mut session = TerminalSession::new()?;
-    let mut app = App::new();
+    let output_dir = parse_output_dir()?;
+    let mut app = App::new(output_dir);
     let (tx, mut rx) = mpsc::channel(100);
 
     // Sync / Cache logic
@@ -193,12 +194,12 @@ async fn main() -> Result<()> {
                                 app.notification = None;
                                 app.error = None;
                                 app.should_quit_after_save = true;
-                                if std::path::Path::new(".gitignore").exists() {
+                                if app.gitignore_exists() {
                                     app.input_mode = InputMode::Confirm;
                                     app.confirm_action = Some(crate::app::ConfirmAction::Append);
                                 } else {
                                     let content = app.generate_gitignore_content();
-                                    if gitignore::write_gitignore(&content, gitignore::WriteMode::Overwrite).is_ok() {
+                                    if gitignore::write_gitignore(&app.gitignore_path(), &content, gitignore::WriteMode::Overwrite).is_ok() {
                                         break 'main_loop;
                                     }
                                 }
@@ -212,12 +213,12 @@ async fn main() -> Result<()> {
                                 app.notification = None;
                                 app.error = None;
                                 app.should_quit_after_save = false;
-                                if std::path::Path::new(".gitignore").exists() {
+                                if app.gitignore_exists() {
                                     app.input_mode = InputMode::Confirm;
                                     app.confirm_action = Some(crate::app::ConfirmAction::Append);
                                 } else {
                                     let content = app.generate_gitignore_content();
-                                    match gitignore::write_gitignore(&content, gitignore::WriteMode::Overwrite) {
+                                    match gitignore::write_gitignore(&app.gitignore_path(), &content, gitignore::WriteMode::Overwrite) {
                                         Ok(_) => app.notification = Some("Successfully created .gitignore!".to_string()),
                                         Err(e) => app.error = Some(format!("Failed to write: {}", e)),
                                     }
@@ -242,7 +243,7 @@ async fn main() -> Result<()> {
                             };
                             let content = app.generate_gitignore_content();
                             let should_quit = app.should_quit_after_save;
-                            match gitignore::write_gitignore(&content, mode) {
+                            match gitignore::write_gitignore(&app.gitignore_path(), &content, mode) {
                                 Ok(_) => {
                                     if should_quit {
                                         break 'main_loop;
@@ -276,4 +277,41 @@ async fn main() -> Result<()> {
     }
 
     Ok(())
+}
+
+fn parse_output_dir() -> Result<PathBuf> {
+    let mut args = std::env::args().skip(1);
+    let mut output_dir: Option<PathBuf> = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-d" | "--dir" => {
+                let value = args
+                    .next()
+                    .ok_or_else(|| anyhow::anyhow!("--dir requires a path"))?;
+                output_dir = Some(PathBuf::from(value));
+            }
+            _ => {
+                if output_dir.is_some() {
+                    return Err(anyhow::anyhow!("Unexpected argument: {}", arg));
+                }
+                output_dir = Some(PathBuf::from(arg));
+            }
+        }
+    }
+
+    let cwd = std::env::current_dir()?;
+    let dir = output_dir.map_or(cwd.clone(), |path| {
+        if path.is_absolute() {
+            path
+        } else {
+            cwd.join(path)
+        }
+    });
+
+    if !dir.is_dir() {
+        return Err(anyhow::anyhow!("Target path is not a directory: {}", dir.display()));
+    }
+
+    Ok(dir)
 }

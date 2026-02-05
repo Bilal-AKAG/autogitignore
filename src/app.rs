@@ -1,6 +1,7 @@
 use fuzzy_matcher::skim::SkimMatcherV2;
 use fuzzy_matcher::FuzzyMatcher;
 use std::collections::{HashMap, HashSet};
+use std::path::PathBuf;
 
 #[derive(Debug, PartialEq)]
 pub enum InputMode {
@@ -53,10 +54,12 @@ pub struct App {
     pub confirm_action: Option<ConfirmAction>,
     /// Whether the app should exit after the next successful save.
     pub should_quit_after_save: bool,
+    /// Directory where the .gitignore should be written.
+    pub output_dir: PathBuf,
 }
 
 impl App {
-    pub fn new() -> Self {
+    pub fn new(output_dir: PathBuf) -> Self {
         Self {
             templates: Vec::new(),
             filtered_templates: Vec::new(),
@@ -73,6 +76,7 @@ impl App {
             preview_mode: PreviewMode::Highlighted,
             confirm_action: None,
             should_quit_after_save: false,
+            output_dir,
         }
     }
 
@@ -205,5 +209,14 @@ impl App {
         let mut selected: Vec<_> = self.selected_templates.iter().collect();
         selected.sort();
         selected.into_iter().cloned().collect::<Vec<_>>().join(", ")
+    }
+
+
+    pub fn gitignore_path(&self) -> PathBuf {
+        self.output_dir.join(".gitignore")
+    }
+
+    pub fn gitignore_exists(&self) -> bool {
+        self.gitignore_path().exists()
     }
 }
