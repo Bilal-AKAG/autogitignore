@@ -1,4 +1,5 @@
 use ratatui::{
+    layout::Alignment,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
@@ -31,7 +32,7 @@ pub fn draw(f: &mut Frame, app: &mut App) {
                 .borders(Borders::ALL)
                 .border_style(Style::default().fg(Color::Magenta)),
         )
-        .alignment(ratatui::layout::Alignment::Center);
+        .alignment(Alignment::Center);
     f.render_widget(header, vertical_chunks[0]);
 
     // Main Content: Split Horizontal (List | Preview)
@@ -83,7 +84,11 @@ fn draw_list_pane(f: &mut Frame, app: &mut App, area: Rect) {
     };
 
     let mut state = ListState::default();
-    state.select(Some(app.highlighted_index));
+    if app.filtered_templates.is_empty() {
+        state.select(None);
+    } else {
+        state.select(Some(app.highlighted_index));
+    }
 
     let list = List::new(items)
         .block(
@@ -158,7 +163,10 @@ fn draw_search_pane(f: &mut Frame, app: &mut App, area: Rect) {
     f.render_widget(input, area);
 
     if let InputMode::Editing = app.input_mode {
-        f.set_cursor_position((area.x + app.search_query.len() as u16 + 1, area.y + 1));
+        let cursor_x = area.x.saturating_add(1).saturating_add(app.search_query.len() as u16);
+        let max_x = area.x.saturating_add(area.width.saturating_sub(1));
+        let cursor_x = cursor_x.min(max_x);
+        f.set_cursor_position((cursor_x, area.y + 1));
     }
 }
 
@@ -312,7 +320,7 @@ fn draw_confirm_modal(f: &mut Frame, app: &mut App) {
 
     let paragraph = Paragraph::new(text)
         .block(block)
-        .alignment(ratatui::layout::Alignment::Center)
+        .alignment(Alignment::Center)
         .wrap(Wrap { trim: true });
 
     f.render_widget(paragraph, modal_area);
