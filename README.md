@@ -42,6 +42,31 @@ Or run from source:
 cargo run -- --dir /path/to/project
 ```
 
+## Install With Cargo
+
+```bash
+cargo install autogitignore
+```
+
+After installing, run:
+
+```bash
+autogitignore
+```
+
+## Configuration
+
+autogitignore is configured only via CLI flags right now.
+
+Available options:
+
+- `-d`, `--dir <path>`: Write the `.gitignore` file into a specific directory (defaults to the current working directory).
+
+Cache behavior:
+
+- Templates are cached locally after the first sync.
+- The cache location is determined by your OS using the `directories` crate (app cache directory).
+
 ## Controls
 
 - `i` or `/` Enter search mode
