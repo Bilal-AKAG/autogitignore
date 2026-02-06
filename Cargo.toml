@@ -1,6 +1,6 @@
 [package]
 name = "autogitignore"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 authors = ["Bilal Ali"]
 description = "A TUI for searching, previewing, and generating .gitignore files from gitignore.io templates."

@@ -1,28 +1,19 @@
 # autogitignore
 
-A terminal UI (TUI) for searching, previewing, and generating `.gitignore` files using templates from gitignore.io (Toptal).
+Search, preview, and generate `.gitignore` files from gitignore.io (Toptal) with a fast, focused TUI.
 
-## Why This Project Exists
+![autogitignore TUI screenshot](assets/TUI.png)
 
-This repository is a **refactored version** of an earlier prototype. It was reorganized and cleaned up as a learning project to explore:
+## Highlights
 
-- Rust application structure
-- async I/O with Tokio
-- caching and HTTP APIs
-- TUI development with Ratatui
-
-The goal is to be readable, intentional, and a practical learning reference.
-
-## Features
-
-- Fuzzy search for templates
-- Highlighted vs. combined preview modes
-- Selection of multiple templates
+- Fuzzy search across templates
+- Highlighted or combined preview modes
+- Multi-template selection
 - Offline cache after first sync
 - Safe write with `.gitignore.bak` backup
 - Optional output directory support
 
-## Usage
+## Quick Start
 
 Run in the current folder:
 
@@ -36,29 +27,29 @@ Write into a different folder:
 autogitignore --dir /path/to/project
 ```
 
-Or run from source:
+Run from source:
 
 ```bash
 cargo run -- --dir /path/to/project
 ```
 
-## Install With Cargo
+## Install (One-Time)
 
 ```bash
 cargo install autogitignore
 ```
 
-After installing, run:
+Then:
 
 ```bash
 autogitignore
 ```
 
+This installs the binary from crates.io once. After that, you can run `autogitignore` anywhere.
+
 ## Configuration
 
-autogitignore is configured only via CLI flags right now.
-
-Available options:
+CLI options:
 
 - `-d`, `--dir <path>`: Write the `.gitignore` file into a specific directory (defaults to the current working directory).
 
@@ -69,14 +60,16 @@ Cache behavior:
 
 ## Controls
 
-- `i` or `/` Enter search mode
-- `Esc` Exit search / close modal
-- `Space` Toggle selection
-- `P` Toggle preview mode (Highlighted/Combined)
-- `Alt+J / Alt+K` Scroll preview
-- `Ctrl+S` Save
-- `Enter` Save and quit
-- `Q` Quit
+| Key | Action |
+| --- | --- |
+| `i` or `/` | Enter search mode |
+| `Esc` | Exit search or close modal |
+| `Space` | Toggle selection |
+| `P` | Toggle preview mode (Highlighted/Combined) |
+| `Alt+J` / `Alt+K` | Scroll preview |
+| `Ctrl+S` | Save |
+| `Enter` | Save and quit |
+| `Q` | Quit |
 
 ## Project Layout
 
@@ -90,14 +83,6 @@ Cache behavior:
 
 - The cache is stored using `directories` in the user cache directory.
 - Linux builds using `native-tls` may require OpenSSL.
-
-## Learning Goals
-
-If you are learning Rust or Ratatui, this repo can be used as a small, complete example of:
-
-- State-driven UI rendering
-- Async background tasks in a TUI
-- Clean separation of UI, state, and IO
 
 ## License
 

@@ -229,7 +229,8 @@ fn draw_status_pane(f: &mut Frame, app: &mut App, area: Rect) {
     // Line 3: Shortcuts (Beautifully formatted)
     let shortcuts = vec![
         ("SPACE", "Select"),
-        ("/", "Search"),
+        ("/, I", "Search"),
+        ("ESC", "Exit Search"),
         ("P", "Toggle Mode"),
         ("ALT+J/K", "Scroll Preview"),
         ("CTRL+S", "Save"),
