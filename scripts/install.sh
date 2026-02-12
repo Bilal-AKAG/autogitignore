@@ -50,12 +50,13 @@ INSTALL_DIR="${BINDIR:-$HOME/.local/bin}"
 mkdir -p "$INSTALL_DIR"
 install "$TMP_DIR/$BIN_NAME" "$INSTALL_DIR/$BIN_NAME"
 
-if [ -t 1 ]; then
-  C_RESET='\033[0m'
-  C_BOLD='\033[1m'
-  C_CYAN='\033[36m'
-  C_GREEN='\033[32m'
-  C_YELLOW='\033[33m'
+if [ -t 1 ] && [ -z "${NO_COLOR:-}" ] && [ "${TERM:-}" != "dumb" ]; then
+  ESC="$(printf '\033')"
+  C_RESET="${ESC}[0m"
+  C_BOLD="${ESC}[1m"
+  C_CYAN="${ESC}[36m"
+  C_GREEN="${ESC}[32m"
+  C_YELLOW="${ESC}[33m"
 else
   C_RESET=''
   C_BOLD=''
