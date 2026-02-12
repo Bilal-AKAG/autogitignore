@@ -33,19 +33,47 @@ Run from source:
 cargo run -- --dir /path/to/project
 ```
 
-## Install (One-Time)
+## Install
+
+### From crates.io
 
 ```bash
 cargo install autogitignore
 ```
+
+### From GitHub Releases (prebuilt binaries)
+
+macOS/Linux (latest):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.sh | sh
+```
+
+macOS/Linux (specific version, example `v0.1.2`):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.sh | sh -s -- v0.1.2
+```
+
+Windows PowerShell (latest):
+
+```powershell
+iwr https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.ps1 -UseBasicParsing | iex
+```
+
+Windows PowerShell (specific version):
+
+```powershell
+& ([scriptblock]::Create((iwr https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.ps1 -UseBasicParsing).Content)) -Version v0.1.2
+```
+
+By default, scripts install to `$HOME/.local/bin` (`%USERPROFILE%\\.local\\bin` on Windows). Set `BINDIR` to change it.
 
 Then:
 
 ```bash
 autogitignore
 ```
-
-This installs the binary from crates.io once. After that, you can run `autogitignore` anywhere.
 
 ## Configuration
 
