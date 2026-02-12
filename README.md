@@ -1,5 +1,10 @@
 # autogitignore
 
+[![crates.io](https://img.shields.io/crates/v/autogitignore?style=for-the-badge&logo=rust)](https://crates.io/crates/autogitignore)
+[![downloads](https://img.shields.io/crates/d/autogitignore?style=for-the-badge&logo=rust)](https://crates.io/crates/autogitignore)
+[![release workflow](https://img.shields.io/github/actions/workflow/status/Bilal-AKAG/autogitignore/release.yml?style=for-the-badge&label=release)](https://github.com/Bilal-AKAG/autogitignore/actions/workflows/release.yml)
+[![license](https://img.shields.io/crates/l/autogitignore?style=for-the-badge)](https://github.com/Bilal-AKAG/autogitignore/blob/main/LICENSE)
+
 Search, preview, and generate `.gitignore` files from gitignore.io (Toptal) with a fast, focused TUI.
 
 ![autogitignore TUI screenshot](assets/TUI.png)
@@ -49,10 +54,10 @@ macOS/Linux (latest):
 curl -fsSL https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.sh | sh
 ```
 
-macOS/Linux (specific version, example `v0.1.2`):
+macOS/Linux (specific version, example `v0.1.3`):
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.sh | sh -s -- v0.1.2
+curl -fsSL https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.sh | sh -s -- v0.1.3
 ```
 
 Windows PowerShell (latest):
@@ -61,10 +66,10 @@ Windows PowerShell (latest):
 iwr https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.ps1 -UseBasicParsing | iex
 ```
 
-Windows PowerShell (specific version):
+Windows PowerShell (specific version, example `v0.1.3`):
 
 ```powershell
-& ([scriptblock]::Create((iwr https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.ps1 -UseBasicParsing).Content)) -Version v0.1.2
+& ([scriptblock]::Create((iwr https://raw.githubusercontent.com/Bilal-AKAG/autogitignore/main/scripts/install.ps1 -UseBasicParsing).Content)) -Version v0.1.3
 ```
 
 By default, scripts install to `$HOME/.local/bin` (`%USERPROFILE%\\.local\\bin` on Windows). Set `BINDIR` to change it.
