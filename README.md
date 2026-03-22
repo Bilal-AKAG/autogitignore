@@ -40,6 +40,19 @@ cargo run -- --dir /path/to/project
 
 ## Install
 
+### Homebrew (macOS & Linux)
+
+```bash
+brew tap Bilal-AKAG/autogitignore
+brew install autogitignore
+```
+
+Or in a single command:
+
+```bash
+brew install Bilal-AKAG/autogitignore/autogitignore
+```
+
 ### From crates.io
 
 ```bash

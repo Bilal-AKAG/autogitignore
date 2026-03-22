@@ -8,6 +8,10 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g. v0.1.3). Required for workflow_dispatch.'
+        required: true
 
 jobs:
   publish-crate:
@@ -122,3 +126,85 @@ jobs:
         with:
           files: release-assets/*
           generate_release_notes: true
+
+  update-homebrew-tap:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download macOS and Linux build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Compute SHA256 checksums
+        id: sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${GITHUB_REF_NAME}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+          sha_arm=$(sha256sum "release-assets/autogitignore-${VERSION}-aarch64-apple-darwin.tar.gz" | awk '{print $1}')
+          sha_intel=$(sha256sum "release-assets/autogitignore-${VERSION}-x86_64-apple-darwin.tar.gz" | awk '{print $1}')
+          sha_linux=$(sha256sum "release-assets/autogitignore-${VERSION}-x86_64-unknown-linux-gnu.tar.gz" | awk '{print $1}')
+
+          echo "sha_arm=${sha_arm}" >> "$GITHUB_OUTPUT"
+          echo "sha_intel=${sha_intel}" >> "$GITHUB_OUTPUT"
+          echo "sha_linux=${sha_linux}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout homebrew tap
+        uses: actions/checkout@v4
+        with:
+          repository: Bilal-AKAG/homebrew-autogitignore
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          path: homebrew-tap
+
+      - name: Update formula version and SHA256
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.sha.outputs.version }}"
+          SHA_ARM="${{ steps.sha.outputs.sha_arm }}"
+          SHA_INTEL="${{ steps.sha.outputs.sha_intel }}"
+          SHA_LINUX="${{ steps.sha.outputs.sha_linux }}"
+          FORMULA="homebrew-tap/Formula/autogitignore.rb"
+
+          # Update version
+          sed -i "s/version \"[^\"]*\"/version \"${VERSION#v}\"/" "$FORMULA"
+
+          # Update SHA256 values per architecture (order: Intel, ARM, Linux)
+          # We use a Python script for reliable multi-line ruby DSL editing
+          python3 - "$FORMULA" "$SHA_INTEL" "$SHA_ARM" "$SHA_LINUX" <<'PYEOF'
+          import sys, re
+
+          formula_path, sha_intel, sha_arm, sha_linux = sys.argv[1:]
+          content = open(formula_path).read()
+
+          # Replace SHA256 inside on_intel / on_arm / on_linux blocks
+          def replace_sha(text, block_marker, new_sha):
+              pattern = rf'({re.escape(block_marker)}.*?sha256 ")[0-9a-f]{{64}}(")'  
+              return re.sub(pattern, rf'\g<1>{new_sha}\2', text, count=1, flags=re.DOTALL)
+
+          content = replace_sha(content, 'on_intel do', sha_intel)
+          content = replace_sha(content, 'on_arm do',   sha_arm)
+          content = replace_sha(content, 'on_linux do', sha_linux)
+
+          open(formula_path, 'w').write(content)
+          print('Formula updated successfully.')
+          PYEOF
+
+      - name: Commit and push formula update
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.sha.outputs.version }}"
+          cd homebrew-tap
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/autogitignore.rb
+          git diff --cached --quiet && { echo "Formula already up-to-date."; exit 0; }
+          git commit -m "chore: update autogitignore to ${VERSION}"
+          git push
